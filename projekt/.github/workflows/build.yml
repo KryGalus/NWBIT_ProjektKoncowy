@@ -1,0 +1,38 @@
+name: Build and Upload EXE
+
+on:
+  push:
+    branches:
+      - master
+  schedule:
+    - cron: '0 0 * * 0' # Raz w tygodniu w niedzielę o północy
+  workflow_dispatch: # Ręczne uruchamianie przez użytkownika
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.8' # Wybierz odpowiednią wersję Pythona
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install pyinstaller xmltodict pyyaml
+        ./installResources.ps1
+
+    - name: Build EXE
+      run: |
+        pyinstaller --onefile --noconsole data_converter.py
+
+    - name: Upload EXE
+      uses: actions/upload-artifact@v3
+      with:
+        name: data_converter
+        path: dist/data_converter.exe
